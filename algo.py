@@ -4,25 +4,26 @@ import math
 
 
 # Original Karger algorithm
-# A randomly selected vertex is selected and contracted until two nodes remain.
-# The min-cut value corresponds to the number of vertices between those two nodes.
+# A randomly selected edge is selected and contracted until two nodes remain.
+# The min-cut value corresponds to the number of edges between those two nodes.
 def karger(graph):
     # Prevents modifying the actual graph passed in parameter in case of several executions on the same graph
     graph = graph.copy()
     print("-----")
     while len(graph.items()) > 2:
-        node_1, node_1_list = random.choice(list(graph.items()))
-        node_2 = random.choice(node_1_list)
+        # random.sample returns a list of 1 element
+        node_1, node_2 = random.sample(get_edges_list(graph), 1)[0]
+        print(node_1, node_2)
         print("Contracting %d - %d" % (node_1, node_2))
         # Deleting node_2 and keeping the nodes it was linked to
-        deleted_node_vertices = graph.pop(node_2)
+        deleted_node_edges = graph.pop(node_2)
         for key, val in graph.items():
-            # Everything linked to node_2 is now linked to node_1
+            # Every node previously linked to node_2 is now linked to node_1
             if key != node_1:
                 graph[key] = [i if i != node_2 else node_1 for i in val]
             # Links for node_1 are updated from the links of node_2
             else:
-                graph[key] = [i for i in val if i != node_2] + [i for i in deleted_node_vertices if i != node_1]
+                graph[key] = [i for i in val if i != node_2] + [i for i in deleted_node_edges if i != node_1]
         print(graph)
     return graph
 
@@ -46,23 +47,36 @@ def karger_recursive(graph, nb_contract):
             node_2 = random.choice(node_1_list)
             print("Contracting %d - %d" % (node_1, node_2))
             # Deleting node_2 and keeping the nodes it was linked to
-            deleted_node_vertices = graph.pop(node_2)
+            deleted_node_edges = graph.pop(node_2)
             for key, val in graph.items():
                 # Everything linked to node_2 is now linked to node_1
                 if key != node_1:
                     graph[key] = [i if i != node_2 else node_1 for i in val]
                 # Links for node_1 are updated from the links of node_2
                 else:
-                    graph[key] = [i for i in val if i != node_2] + [i for i in deleted_node_vertices if i != node_1]
+                    graph[key] = [i for i in val if i != node_2] + [i for i in deleted_node_edges if i != node_1]
             print(graph)
         return karger_recursive(graph, nb_contract)
 
 
-# Returns the number of vertices between the two remaining nodes.
-# This value is found by grabbing the number of vertices of one of those two nodes, here the first one.
+# Returns the number of edges between the two remaining nodes.
+# This value is found by grabbing the number of edges of one of those two nodes, here the first one.
 # Example of cut : {1: [2, 2, 2], 2: [1, 1, 1]}
 def cut_value(graph):
     return len(graph[list(graph.keys())[0]])
+
+
+# Returns a list containing the graph edges
+# For each couple of vertices a and b, the edge represented with (a,b) and (b,a) are the same.
+# We decide to represent an edge by a tuple (a,b) with "a" being the node of smallest index.
+# So if a < b, we add (a,b). Otherwise, we add (b,a)
+# A set is used to be sure that each edge is added only once.
+def get_edges_list(graph):
+    edges_set = set()
+    for key, val in graph.items():
+        for n in val:
+            edges_set.add((key, n) if key < n else (n, key))
+    return edges_set
 
 
 if __name__ == '__main__':
