@@ -13,7 +13,6 @@ def karger(graph):
     while len(graph.items()) > 2:
         # random.sample returns a list of 1 element
         node_1, node_2 = random.sample(get_edges_list(graph), 1)[0]
-        print(node_1, node_2)
         print("Contracting %d - %d" % (node_1, node_2))
         # Deleting node_2 and keeping the nodes it was linked to
         deleted_node_edges = graph.pop(node_2)
@@ -43,8 +42,7 @@ def karger_recursive(graph, nb_contract):
     else:
         print("-----")
         while len(graph.items()) > n / nb_contract:
-            node_1, node_1_list = random.choice(list(graph.items()))
-            node_2 = random.choice(node_1_list)
+            node_1, node_2 = random.sample(get_edges_list(graph), 1)[0]
             print("Contracting %d - %d" % (node_1, node_2))
             # Deleting node_2 and keeping the nodes it was linked to
             deleted_node_edges = graph.pop(node_2)
@@ -86,7 +84,9 @@ if __name__ == '__main__':
     input_graph = {1: [2, 3, 4], 2: [1, 4], 3: [1], 4: [1, 2]}
     input_graph2 = {1: [2, 3, 4, 6], 2: [1, 4, 5, 7], 3: [1, 6, 7], 4: [1, 2, 5, 6], 5: [2, 4], 6: [1, 3, 4], 7: [2, 3]}
     example_cut = {1: [2, 2, 2], 2: [1, 1, 1]}
+    print("Karger :")
     k1 = karger(input_graph2)
-    print("Karger : " + str(k1))
+    print("Karger result : " + str(k1), end="\n\n")
+    print("Recursive Karger :")
     k2 = karger_improved(input_graph2)
-    print("Recursive Karger : " + str(k2))
+    print("Recursive Karger result : " + str(k2))
