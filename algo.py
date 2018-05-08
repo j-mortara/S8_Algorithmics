@@ -77,6 +77,10 @@ def get_edges_list(graph):
     return edges_set
 
 
+def run_all(graph):
+    return {'karger': karger(graph), 'karger_improved': karger_improved(graph), 'karger_recursive': karger_improved(graph, 2, 3)}
+
+
 if __name__ == '__main__':
     # A graph can be represented with a dictionary
     # Key : node
