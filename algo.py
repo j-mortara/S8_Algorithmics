@@ -57,6 +57,33 @@ def karger_recursive(graph, nb_contract):
         return karger_recursive(graph, nb_contract)
 
 
+def stoer_wagner(graph):
+    # print len(graph)
+    while len(graph) > 2:
+        # TODO: use importance sampling
+        start_index, start_val = random.choice(list(graph.items()))
+        finish = random.choice(start_val)
+
+        # print start_index, finish
+        # # Adding the edges from the absorbed node:
+        for edge in graph[finish]:
+            if edge != start_index:  # this stops us from making a self-loop
+                graph[start_index].append(edge)
+
+        # # Deleting the references to the absorbed node and changing them to the source node:
+        for edge1 in graph[finish]:
+            graph[edge1].remove(finish)
+            if edge1 != start_index:  # this stops us from re-adding all the edges in start_index.
+                graph[edge1].append(start_index)
+        del graph[finish]
+
+    # # Calculating and recording the mincut
+    mincut = cut_value(graph)
+    print(mincut)
+    # print graph
+    return graph
+
+
 # Returns the number of edges between the two remaining nodes.
 # This value is found by grabbing the number of edges of one of those two nodes, here the first one.
 # Example of cut : {1: [2, 2, 2], 2: [1, 1, 1]}
@@ -87,10 +114,12 @@ if __name__ == '__main__':
     # Value : list of the nodes linked to the node
     input_graph = {1: [2, 3, 4], 2: [1, 4], 3: [1], 4: [1, 2]}
     input_graph2 = {1: [2, 3, 4, 6], 2: [1, 4, 5, 7], 3: [1, 6, 7], 4: [1, 2, 5, 6], 5: [2, 4], 6: [1, 3, 4], 7: [2, 3]}
-    example_cut = {1: [2, 2, 2], 2: [1, 1, 1]}
-    print("Karger :")
-    k1 = karger(input_graph2)
-    print("Karger result : " + str(k1), end="\n\n")
-    print("Recursive Karger :")
-    k2 = karger_improved(input_graph2)
-    print("Recursive Karger result : " + str(k2))
+    # example_cut = {1: [2, 2, 2], 2: [1, 1, 1]}
+    # print("Karger :")
+    # k1 = karger(input_graph2)
+    # print("Karger result : " + str(k1), end="\n\n")
+    # print("Recursive Karger :")
+    # k2 = karger_improved(input_graph2)
+    # print("Recursive Karger result : " + str(k2))
+    s = stoer_wagner(input_graph2)
+    print(s)
