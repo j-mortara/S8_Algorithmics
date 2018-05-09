@@ -1,25 +1,26 @@
 import random
-import time
 import math
 import csv
 import logging
 import time
 
-last_update = 0
+contractions = 0
+
 
 # Original Karger algorithm
 # A randomly selected edge is selected and contracted until two nodes remain.
 # The min-cut value corresponds to the number of edges between those two nodes.
 def karger(graph):
+    global contractions
     # Prevents modifying the actual graph passed in parameter in case of several executions on the same graph
     graph = graph.copy()
-    logging.debug("-----")
     while len(graph.items()) > 2:
         # random.sample returns a list of 1 element
         edge_list = get_edges_list(graph)
         if len(edge_list) < 1:
             return graph
         node_1, node_2 = random.sample(edge_list, 1)[0]
+        contractions += 1
         logging.debug("Contracting %d - %d" % (node_1, node_2))
         # Deleting node_2 and keeping the nodes it was linked to
         deleted_node_edges = graph.pop(node_2)
@@ -30,7 +31,6 @@ def karger(graph):
             # Links for node_1 are updated from the links of node_2
             else:
                 graph[key] = [i for i in val if i != node_2] + [i for i in deleted_node_edges if i != node_1]
-        logging.debug(graph)
     return graph
 
 
@@ -43,16 +43,17 @@ def karger_improved(graph, nb_contract=math.sqrt(2), nb_recur=2):
 # Instead of contracting the graph until only two nodes remain, the contraction is done until n/nb_contract nodes
 # remain, then a recursive call is done on the resulting graph.
 def karger_recursive(graph, nb_contract):
+    global contractions
     n = len(graph.items())
     if len(graph.items()) == 2:
         return graph
     else:
-        logging.debug("-----")
         while len(graph.items()) > n / nb_contract:
             edge_list = get_edges_list(graph)
             if len(edge_list) < 1:
                 return graph
             node_1, node_2 = random.sample(edge_list, 1)[0]
+            contractions += 1
             logging.debug("Contracting %d - %d" % (node_1, node_2))
             # Deleting node_2 and keeping the nodes it was linked to
             deleted_node_edges = graph.pop(node_2)
@@ -63,7 +64,6 @@ def karger_recursive(graph, nb_contract):
                 # Links for node_1 are updated from the links of node_2
                 else:
                     graph[key] = [i for i in val if i != node_2] + [i for i in deleted_node_edges if i != node_1]
-            logging.debug(graph)
         return karger_recursive(graph, nb_contract)
 
 
@@ -115,17 +115,28 @@ def get_edges_list(graph):
 
 
 def run_all(graph):
-    return {'karger': karger(graph), 'karger_improved': karger_improved(graph), 'karger_recursive': karger_improved(graph, 2, 3)}
+    global contractions
+    res = {}
+    contractions = 0
+    res['karger'] = karger(graph), contractions
+    contractions = 0
+    res['karger_improved'] = karger_improved(graph), contractions
+    contractions = 0
+    res['karger_recursive'] = karger_improved(graph, 2, 3), contractions
+
+    return res
 
 
 def run_case_suite_and_export(graph_list):
     # TODO interesting metrics
     c_example = "Exemple"
     c_algo = "Algorithme"
+    c_edges = "Nombre d'arêtes"
     c_min_cut = "Coupe min"
-    columns = [c_example, c_algo, c_min_cut]
+    c_contractions = "Nombre de contractions"
+    columns = [c_example, c_algo, c_edges, c_min_cut, c_contractions]
     filename = str(int(time.time() * 1000)) + '_analytics.csv'
-    with open(filename, 'w') as csvfile:
+    with open(filename, 'w', encoding="UTF-8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=columns)
         writer.writeheader()
 
@@ -133,7 +144,8 @@ def run_case_suite_and_export(graph_list):
         last_update = time.time()
         total = len(graph_list)
         for i, graph in enumerate(graph_list):
-            for algo, res in run_all(graph).items():
+            edges_number = len(get_edges_list(graph))
+            for algo, (res, contractions) in run_all(graph).items():
                 # Extract min cut result, throw an exception if the result isn't coherent
                 min_cut = -1
                 for _, value in res.items():
@@ -146,7 +158,9 @@ def run_case_suite_and_export(graph_list):
                 row = {}
                 row[c_example] = i + 1
                 row[c_algo] = algo
+                row[c_edges] = edges_number
                 row[c_min_cut] = min_cut
+                row[c_contractions] = contractions
                 writer.writerow(row)
 
             if (time.time() - last_update >= 2):
