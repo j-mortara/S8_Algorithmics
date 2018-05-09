@@ -1,7 +1,11 @@
 import random
-
+import time
 import math
+import csv
+import logging
+import time
 
+last_update = 0
 
 # Original Karger algorithm
 # A randomly selected edge is selected and contracted until two nodes remain.
@@ -9,11 +13,14 @@ import math
 def karger(graph):
     # Prevents modifying the actual graph passed in parameter in case of several executions on the same graph
     graph = graph.copy()
-    print("-----")
+    logging.debug("-----")
     while len(graph.items()) > 2:
         # random.sample returns a list of 1 element
-        node_1, node_2 = random.sample(get_edges_list(graph), 1)[0]
-        print("Contracting %d - %d" % (node_1, node_2))
+        edge_list = get_edges_list(graph)
+        if len(edge_list) < 1:
+            return graph
+        node_1, node_2 = random.sample(edge_list, 1)[0]
+        logging.debug("Contracting %d - %d" % (node_1, node_2))
         # Deleting node_2 and keeping the nodes it was linked to
         deleted_node_edges = graph.pop(node_2)
         for key, val in graph.items():
@@ -23,7 +30,7 @@ def karger(graph):
             # Links for node_1 are updated from the links of node_2
             else:
                 graph[key] = [i for i in val if i != node_2] + [i for i in deleted_node_edges if i != node_1]
-        print(graph)
+        logging.debug(graph)
     return graph
 
 
@@ -40,10 +47,13 @@ def karger_recursive(graph, nb_contract):
     if len(graph.items()) == 2:
         return graph
     else:
-        print("-----")
+        logging.debug("-----")
         while len(graph.items()) > n / nb_contract:
-            node_1, node_2 = random.sample(get_edges_list(graph), 1)[0]
-            print("Contracting %d - %d" % (node_1, node_2))
+            edge_list = get_edges_list(graph)
+            if len(edge_list) < 1:
+                return graph
+            node_1, node_2 = random.sample(edge_list, 1)[0]
+            logging.debug("Contracting %d - %d" % (node_1, node_2))
             # Deleting node_2 and keeping the nodes it was linked to
             deleted_node_edges = graph.pop(node_2)
             for key, val in graph.items():
@@ -53,7 +63,7 @@ def karger_recursive(graph, nb_contract):
                 # Links for node_1 are updated from the links of node_2
                 else:
                     graph[key] = [i for i in val if i != node_2] + [i for i in deleted_node_edges if i != node_1]
-            print(graph)
+            logging.debug(graph)
         return karger_recursive(graph, nb_contract)
 
 
@@ -81,6 +91,43 @@ def run_all(graph):
     return {'karger': karger(graph), 'karger_improved': karger_improved(graph), 'karger_recursive': karger_improved(graph, 2, 3)}
 
 
+def run_case_suite_and_export(graph_list):
+    # TODO interesting metrics
+    c_example = "Exemple"
+    c_algo = "Algorithme"
+    c_min_cut = "Coupe min"
+    columns = [c_example, c_algo, c_min_cut]
+    filename = str(int(time.time() * 1000)) + '_analytics.csv'
+    with open(filename, 'w') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=columns)
+        writer.writeheader()
+
+        logging.info("Starting min-cut computations...")
+        last_update = time.time()
+        total = len(graph_list)
+        for i, graph in enumerate(graph_list):
+            for algo, res in run_all(graph).items():
+                # Extract min cut result, throw an exception if the result isn't coherent
+                min_cut = -1
+                for _, value in res.items():
+                    if min_cut == -1:
+                        min_cut = len(value)
+                    else:
+                        if min_cut != len(value):
+                            raise RuntimeError('Result isn\'t coherent.')
+                # Write CSV
+                row = {}
+                row[c_example] = i + 1
+                row[c_algo] = algo
+                row[c_min_cut] = min_cut
+                writer.writerow(row)
+
+            if (time.time() - last_update >= 2):
+                logging.info("%d / %d computed (%d%%)" % (i, total, int(i/total*100)))
+                last_update = time.time()
+    logging.info("Computations finished, analytics stored in '%s'" % filename)
+
+
 if __name__ == '__main__':
     # A graph can be represented with a dictionary
     # Key : node
@@ -88,9 +135,9 @@ if __name__ == '__main__':
     input_graph = {1: [2, 3, 4], 2: [1, 4], 3: [1], 4: [1, 2]}
     input_graph2 = {1: [2, 3, 4, 6], 2: [1, 4, 5, 7], 3: [1, 6, 7], 4: [1, 2, 5, 6], 5: [2, 4], 6: [1, 3, 4], 7: [2, 3]}
     example_cut = {1: [2, 2, 2], 2: [1, 1, 1]}
-    print("Karger :")
+    logging.debug("Karger :")
     k1 = karger(input_graph2)
-    print("Karger result : " + str(k1), end="\n\n")
-    print("Recursive Karger :")
+    logging.debug("Karger result : " + str(k1), end="\n\n")
+    logging.debug("Recursive Karger :")
     k2 = karger_improved(input_graph2)
-    print("Recursive Karger result : " + str(k2))
+    logging.debug("Recursive Karger result : " + str(k2))

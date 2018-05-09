@@ -1,8 +1,15 @@
 import random as rnd
 import algo
+import logging
+import argparse
 
-V = 8
-N = 100
+
+def analyze_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("max_vertices", help="the number max number of vertices in the graph", type=int)
+    parser.add_argument("graph_number", help="the number of graph to generate and run", type=int)
+    parser.add_argument("-d", "--debug", help="print debug logs, slows the program a lot, shouldn't run on big graph nor many examples", action="store_true")
+    return parser.parse_args()
 
 
 def generate_erdos_renyi(v):
@@ -18,12 +25,19 @@ def generate_erdos_renyi(v):
     return graph
 
 
-
-
 def main():
-    for _ in range(N):
-        graph = generate_erdos_renyi(8)
-        algo.run_all(graph)
+    args = analyze_args()
+
+    level = logging.DEBUG if args.debug else logging.INFO
+    logging.basicConfig(format='[%(levelname)s] %(message)s', level=level)
+    graphs = []
+    logging.info(msg="Generating graphs...")
+    for _ in range(args.graph_number):
+        g = generate_erdos_renyi(args.max_vertices)
+        graphs.append(g)
+    logging.info(msg="Graph generation finished")
+    algo.run_case_suite_and_export(graphs)
+
 
 if __name__ == '__main__':
     main()
