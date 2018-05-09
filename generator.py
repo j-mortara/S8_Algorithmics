@@ -12,7 +12,8 @@ def analyze_args():
     return parser.parse_args()
 
 
-def generate_erdos_renyi(v):
+def generate_erdos_renyi(max_vertices):
+    v = rnd.randint(1, max_vertices)
     graph = {i: [] for i in range(1, v+1)}
 
     p = rnd.random()
