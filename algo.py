@@ -3,9 +3,18 @@ import math
 import csv
 import logging
 import time
+import sys
 
 contractions = 0
 
+# Values for the recursive a and b research
+# To modify them, please go to run_recursives function
+min_a = 0
+max_a = 0
+step_a = 0.0
+min_b = 0
+max_b = 0
+step_b = 0
 
 # Original Karger algorithm
 # A randomly selected edge is selected and contracted until two nodes remain.
@@ -127,7 +136,28 @@ def run_all(graph):
     return res
 
 
-def run_case_suite_and_export(graph_list):
+def run_recursives(graph):
+    global contractions, min_a, max_a, step_a, min_b, max_b, step_b
+
+    n = len(graph)
+    min_a = 1
+    max_a = 2
+    # maximum precision is 1e-1
+    step_a = 0.1
+    min_b = n
+    max_b = n**2
+    step_b = n
+
+    res = {}
+    for a in [int((x/10 + step_a) * 10) / 10 for x in range(int(min_a*10), int(max_a*10))]:
+        for b in range(min_b, max_b + 1, step_b):
+            contractions = 0
+            logging.info("Testing with a=%.1f and b=%d" % (a,b))
+            res['karger_recursive_a%.1f_b%d' % (a, b)] = karger_improved(graph, a, b), contractions
+    return res
+
+
+def run_case_suite_and_export(graph_list, run_function=run_all):
     # TODO interesting metrics
     c_example = "Exemple"
     c_algo = "Algorithme"
@@ -145,7 +175,7 @@ def run_case_suite_and_export(graph_list):
         total = len(graph_list)
         for i, graph in enumerate(graph_list):
             edges_number = len(get_edges_list(graph))
-            for algo, (res, contractions) in run_all(graph).items():
+            for algo, (res, contractions) in run_function(graph).items():
                 # Extract min cut result, throw an exception if the result isn't coherent
                 min_cut = -1
                 for _, value in res.items():
