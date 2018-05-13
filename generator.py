@@ -10,6 +10,7 @@ def analyze_args():
     parser.add_argument("graph_number", help="the number of graph to generate and run", type=int)
     parser.add_argument("-d", "--debug", help="print debug logs, slows the program a lot, shouldn't run on big graph nor many examples", action="store_true")
     parser.add_argument("-r", "--recursive", help="run only the recursive version with different value for a and b", action="store_true")
+    parser.add_argument("-e", "--export", help="export the generated graphs in the exports folder", action="store_true")
     return parser.parse_args()
 
 
@@ -27,6 +28,13 @@ def generate_erdos_renyi(max_vertices):
     return graph
 
 
+def graph_to_file(graph, filename):
+    with open(filename, 'w') as f:
+        edges = [str(key) + " " + str(v) + "\n" for key, val in graph.items() for v in val if key < v]
+        f.write(str(len(graph)) + " " + str(len(edges)) + "\n")
+        f.writelines(edges)
+
+
 def main():
     args = analyze_args()
 
@@ -34,8 +42,9 @@ def main():
     logging.basicConfig(format='[%(levelname)s] %(message)s', level=level)
     graphs = []
     logging.info(msg="Generating graphs...")
-    for _ in range(args.graph_number):
+    for i in range(args.graph_number):
         g = generate_erdos_renyi(args.max_vertices)
+        graph_to_file(g, "exports/graph_%d.txt" % i)
         graphs.append(g)
     logging.info(msg="Graph generation finished")
 

@@ -25,13 +25,6 @@ def file_to_graph(filename):
     return graph
 
 
-def graph_to_file(graph, filename):
-    with open(filename, 'w') as f:
-        edges = [str(key) + " " + str(v) + "\n" for key, val in graph.items() for v in val if key < v]
-        f.write(str(len(graph)) + " " + str(len(edges)) + "\n")
-        f.writelines(edges)
-
-
 def add_edge_to_graph(graph, i, j):
     if i not in graph:
         graph[i] = []
