@@ -3,10 +3,14 @@ import argparse
 import algo
 import logging
 
+
 def analyze_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--debug", help="print debug logs, slows the program a lot, shouldn't run on big graph nor many examples", action="store_true")
-    parser.add_argument("-r", "--recursive", help="run only the recursive version with different value for a and b", action="store_true")
+    parser.add_argument("-d", "--debug",
+                        help="print debug logs, slows the program a lot, shouldn't run on big graph nor many examples",
+                        action="store_true")
+    parser.add_argument("-r", "--recursive", help="run only the recursive version with different value for a and b",
+                        action="store_true")
     return parser.parse_args()
 
 
@@ -19,6 +23,13 @@ def file_to_graph(filename):
         add_edge_to_graph(graph, i, j)
         add_edge_to_graph(graph, j, i)
     return graph
+
+
+def graph_to_file(graph, filename):
+    with open(filename, 'w') as f:
+        edges = [str(key) + " " + str(v) + "\n" for key, val in graph.items() for v in val if key < v]
+        f.write(str(len(graph)) + " " + str(len(edges)) + "\n")
+        f.writelines(edges)
 
 
 def add_edge_to_graph(graph, i, j):
