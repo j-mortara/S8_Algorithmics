@@ -50,6 +50,9 @@ def karger_improved(graph, nb_contract=math.sqrt(2), nb_recur=2):
     for _ in range(nb_recur):
         contractions = 0
         res.append((karger_recursive(graph.copy(), nb_contract), contractions))
+    if len(res) == 0:
+        contractions = 0
+        return {}
     r, c = min(res, key=lambda x: cut_value(x[0]))
     contractions = c
     return r
@@ -147,7 +150,7 @@ def run_recursives(graph):
 
     n = len(graph)
     min_a = 1
-    max_a = 2
+    max_a = 5
     # maximum precision is 1e-1
     step_a = 0.1
     min_b = n
@@ -156,10 +159,10 @@ def run_recursives(graph):
 
     res = {}
     for a in [int((x/10 + step_a) * 10) / 10 for x in range(int(min_a*10), int(max_a*10))]:
-        for b in range(min_b, max_b + 1, step_b):
-            contractions = 0
-            logging.info("Testing with a=%.1f and b=%d" % (a,b))
-            res['karger_recursive_a%.1f_b%d' % (a, b)] = karger_improved(graph, a, b), contractions
+        # for b in range(min_b, max_b + 1, step_b):
+        contractions = 0
+        logging.info("Testing with a=%.1f and b=%d" % (a, int(max_b/2)))
+        res['karger_recursive_a%.1f_b%d' % (a, int(max_b/2))] = karger_improved(graph, a, int(max_b/2)), contractions
     return res
 
 
