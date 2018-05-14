@@ -45,17 +45,12 @@ def karger(graph):
 # Improved Karger algorithm
 # Runs two times a recursive algorithm, then returns the minimum min-cut value found
 def karger_improved(graph, nb_contract=math.sqrt(2), nb_recur=2):
-    global contractions
     res = []
     for _ in range(nb_recur):
-        contractions = 0
-        res.append((karger_recursive(graph.copy(), nb_contract), contractions))
+        res.append(karger_recursive(graph.copy(), nb_contract))
     if len(res) == 0:
-        contractions = 0
         return {}
-    r, c = min(res, key=lambda x: cut_value(x[0]))
-    contractions = c
-    return r
+    return min(res, key=cut_value)
 
 
 # Instead of contracting the graph until only two nodes remain, the contraction is done until n/nb_contract nodes
@@ -140,7 +135,8 @@ def run_all(graph):
     contractions = 0
     res['karger_improved'] = karger_improved(graph), contractions
     contractions = 0
-    res['karger_recursive'] = karger_improved(graph, 2, 3), contractions
+    n = len(graph)
+    res['karger_recursive'] = karger_improved(graph, 3.5, (n**2)//2), contractions
 
     return res
 
