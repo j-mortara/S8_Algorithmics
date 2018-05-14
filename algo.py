@@ -18,11 +18,12 @@ step_b = 0
 # Original Karger algorithm
 # A randomly selected edge is selected and contracted until two nodes remain.
 # The min-cut value corresponds to the number of edges between those two nodes.
-def karger(graph):
+def karger(graph, nb_nodes=2):
     global contractions
+    logging.debug("--- START CLASSIC KARGER")
     # Prevents modifying the actual graph passed in parameter in case of several executions on the same graph
     graph = graph.copy()
-    while len(graph.items()) > 2:
+    while len(graph.keys()) > max(nb_nodes, 2):
         # random.sample returns a list of 1 element
         edge_list = get_edges_list(graph)
         if len(edge_list) < 1:
@@ -39,45 +40,34 @@ def karger(graph):
             # Links for node_1 are updated from the links of node_2
             else:
                 graph[key] = [i for i in val if i != node_2] + [i for i in deleted_node_edges if i != node_1]
+    logging.debug("--- END CLASSIC KARGER")
     return graph
 
 
 # Improved Karger algorithm
 # Runs two times a recursive algorithm, then returns the minimum min-cut value found
 def karger_improved(graph, nb_contract=math.sqrt(2), nb_recur=2):
-    res = []
-    for _ in range(nb_recur):
-        res.append(karger_recursive(graph.copy(), nb_contract))
+    logging.debug("--- START RECURSIVE KARGER WITH a=%.2f and b=%d" % (nb_contract, nb_recur))
+    res = karger_recursive(graph.copy(), nb_contract, nb_recur)
     if len(res) == 0:
         return {}
+    logging.debug("--- END RECURSIVE KARGER")
     return min(res, key=cut_value)
 
 
 # Instead of contracting the graph until only two nodes remain, the contraction is done until n/nb_contract nodes
 # remain, then a recursive call is done on the resulting graph.
-def karger_recursive(graph, nb_contract):
+def karger_recursive(graph, nb_contract, nb_recur):
     global contractions
-    n = len(graph.items())
-    if len(graph.items()) == 2:
-        return graph
+    n = len(graph.keys())
+    if n <= 2 or len(get_edges_list(graph)) == 0:
+        return [graph]
     else:
-        while len(graph.items()) > n / nb_contract:
-            edge_list = get_edges_list(graph)
-            if len(edge_list) < 1:
-                return graph
-            node_1, node_2 = random.sample(edge_list, 1)[0]
-            contractions += 1
-            logging.debug("Contracting %d - %d" % (node_1, node_2))
-            # Deleting node_2 and keeping the nodes it was linked to
-            deleted_node_edges = graph.pop(node_2)
-            for key, val in graph.items():
-                # Everything linked to node_2 is now linked to node_1
-                if key != node_1:
-                    graph[key] = [i if i != node_2 else node_1 for i in val]
-                # Links for node_1 are updated from the links of node_2
-                else:
-                    graph[key] = [i for i in val if i != node_2] + [i for i in deleted_node_edges if i != node_1]
-        return karger_recursive(graph, nb_contract)
+        graph = karger(graph, n // nb_contract)
+        r = []
+        for _ in range(nb_recur):
+            r += karger_recursive(graph.copy(), nb_contract, nb_recur)
+        return r
 
 
 def stoer_wagner(graph):
@@ -111,7 +101,7 @@ def stoer_wagner(graph):
 # This value is found by grabbing the number of edges of one of those two nodes, here the first one.
 # Example of cut : {1: [2, 2, 2], 2: [1, 1, 1]}
 def cut_value(graph):
-    return len(graph[list(graph.keys())[0]])
+    return len(list(graph.values())[0])
 
 
 # Returns a list containing the graph edges
@@ -131,12 +121,18 @@ def run_all(graph):
     global contractions
     res = {}
     contractions = 0
-    res['karger'] = karger(graph), contractions
+    r = karger(graph)
+    logging.debug("MIN-CUT: %d" % len(list(r.values())[0]))
+    res['karger'] = r, contractions
     contractions = 0
-    res['karger_improved'] = karger_improved(graph), contractions
+    r = karger_improved(graph)
+    logging.debug("MIN-CUT: %d" % len(list(r.values())[0]))
+    res['karger_improved'] = r, contractions
     contractions = 0
     n = len(graph)
-    res['karger_recursive'] = karger_improved(graph, 3.5, (n**2)//2), contractions
+    r = karger_improved(graph, 1.5, 2)
+    logging.debug("MIN-CUT: %d" % len(list(r.values())[0]))
+    res['karger_recursive'] = r, contractions
 
     return res
 
