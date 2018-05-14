@@ -184,7 +184,7 @@ def run_case_suite_and_export(graph_list, run_function=run_all):
             edges_number = len(get_edges_list(graph))
             for algo, (res, contractions) in run_function(graph).items():
                 # Extract min cut result, throw an exception if the result isn't coherent
-                min_cut = -1
+                min_cut = -1 if res else -1
                 for _, value in res.items():
                     if min_cut == -1:
                         min_cut = len(value)
