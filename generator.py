@@ -44,7 +44,7 @@ def main():
     logging.info(msg="Generating graphs...")
     for i in range(args.graph_number):
         g = generate_erdos_renyi(args.max_vertices)
-        graph_to_file(g, "exports/graph_%d.txt" % i)
+        graph_to_file(g, "exports/graph_%d.txt" % (i+1))
         graphs.append(g)
     logging.info(msg="Graph generation finished")
 
