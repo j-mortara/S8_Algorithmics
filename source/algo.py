@@ -130,7 +130,7 @@ def run_all(graph):
     res['karger_improved'] = r, contractions
     contractions = 0
     n = len(graph)
-    r = karger_improved(graph, 1.5, 2)
+    r = karger_improved(graph, 5, 3)
     logging.debug("MIN-CUT: %d" % len(list(r.values())[0]))
     res['karger_recursive'] = r, contractions
 
