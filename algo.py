@@ -158,11 +158,13 @@ def run_recursives(graph):
     step_b = n
 
     res = {}
-    for a in [int((x/10 + step_a) * 10) / 10 for x in range(int(min_a*10), int(max_a*10))]:
-        # for b in range(min_b, max_b + 1, step_b):
-        contractions = 0
-        logging.info("Testing with a=%.1f and b=%d" % (a, int(max_b/2)))
-        res['karger_recursive_a%.1f_b%d' % (a, int(max_b/2))] = karger_improved(graph, a, int(max_b/2)), contractions
+    #for a in [int((x/10 + step_a) * 10) / 10 for x in range(int(min_a*10), int(max_a*10))]:
+    # for b in range(min_b, max_b + 1, step_b):
+        #contractions = 0
+        #logging.info("Testing with a=%.1f and b=%d" % (a, int(max_b/2)))
+        #res['karger_recursive_a%.1f_b%d' % (a, int(max_b/2))] = karger_improved(graph, a, int(max_b/2)), contractions
+    res['karger_recursive_a3.5'] = karger_improved(graph, 3.5, int(max_b/2)), contractions
+    res['karger_recursive_an^0.75'] = karger_improved(graph, n ** 0.75, int(max_b/2)), contractions
     return res
 
 
